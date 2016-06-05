@@ -1,3 +1,4 @@
+---
 - hosts: tests
   roles:
-    - dochang.docker
+  - role: dochang.docker
