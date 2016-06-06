@@ -1,4 +1,26 @@
 ---
-- hosts: tests
+- hosts: all
+  user: root
   roles:
-  - role: dochang.docker
+  - role: dochang.docker 
+  vars:
+    - files_dir: "{{ FILES_DIR|default('/tmp') }}" 
+    - elast_host: "{{ ELAST_PORT|default('elasticsearch.perf.lab.eng.BOS.redhat.com') }}" 
+    - elast_port: "{{ ELAST_PORT|default('80') }}"
+  tasks:
+    - name: create config.yaml and rules directory
+      file: path=/tmp/rules state=directory
+      file: path=/tmp/config.yaml state=touch 
+      file: path=/etc/systemd/system/docker-elastalert.service state=touch
+    - name: copying config file
+      copy: src="{{ files_dir }}/config.yaml" dest=/tmp/config.yaml owner=root group=root mode=0644
+    - name: copying rules
+      copy: src="{{ files_dir }}/rules" dest=/tmp/rules owner=root group=root mode=0644
+    - name: pull the image
+      shell: docker pull nael4746/elastalert
+    - name: copy service files to systemd
+      template: src=templates/elastalert-service.conf.j2 dest=/etc/systemd/system/docker-elastalert.service owner=root group=root mode=0644
+    - name: start the service
+      service: name=docker-elastalert.service state=started
+    - name: Enable the service
+      service: name=docker-elastalert.service enabled=yes

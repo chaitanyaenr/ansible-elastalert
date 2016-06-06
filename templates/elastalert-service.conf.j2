@@ -1,0 +1,14 @@
+[Unit]
+Description=Elastalert
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=10
+RemainAfterExit=yes
+ExecStartPre=-/usr/bin/docker rm -f nael4746/elastalert
+ExecStartPre=-/usr/bin/docker pull nael4746/elastalert
+ExecStart=/usr/bin/docker run -d --name=elastalert -v "{{ files_dir }}"/config.yaml:/opt/elastalert/config.yaml -v "{{ files_dir }}"/rules:/opt/elastalert/rules -e " ELASTICSEARCH_HOST="{{ elast_host }}"" -e "ELASTICSEARCH_PORT="{{ elast_port }}"" nael4746/elastalert
